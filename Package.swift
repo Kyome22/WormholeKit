@@ -21,5 +21,9 @@ let package = Package(
                 .enableUpcomingFeature("ExistentialAny"),
             ]
         ),
+        .testTarget(
+            name: "WormholeKitTests",
+            dependencies: ["WormholeKit"]
+        ),
     ]
 )

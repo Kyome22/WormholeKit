@@ -3,10 +3,10 @@
  WormholeKit
 
  Created by Takuto Nakamura on 2026/07/05.
- 
+
  */
 
-import SwiftUI
+import Foundation
 import Observation
 
 @MainActor @Observable
@@ -14,27 +14,33 @@ final class WormholeStateStore<D> where D : Sendable, D : Hashable {
     var id: String
     var value: D
 
-    @ObservationIgnored private var task: Task<Void, Never>?
+    @ObservationIgnored nonisolated(unsafe) private var observer: (any NSObjectProtocol)?
 
     init(id: String, value: D) {
         self.id = id
         self.value = value
-        task = Task { [weak self] in
-            let publisher = NotificationCenter.default.publisher(for: .didSentIntoWormhole)
-            for await notification in publisher.bufferedValues() {
-                guard let userInfo = notification.userInfo,
-                      let id = userInfo["id"] as? String,
-                      let value = userInfo["value"] as? D,
-                      id == self?.id else {
-                    continue
+        observer = NotificationCenter.default.addObserver(
+            forName: .didSentIntoWormhole,
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let userInfo = notification.userInfo,
+                  let id = userInfo["id"] as? String,
+                  let value = userInfo["value"] as? D else {
+                return
+            }
+            MainActor.assumeIsolated {
+                guard let self, id == self.id else {
+                    return
                 }
-                self?.value = value
+                self.value = value
             }
         }
     }
 
     deinit {
-        task?.cancel()
-        task = nil
+        if let observer {
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
 }
