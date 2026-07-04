@@ -13,7 +13,7 @@ public struct WormholeState<D>: DynamicProperty, Sendable where D : Sendable, D 
         .init(get: { wrappedValue }, set: { wrappedValue = $0 })
     }
 
-    public init(id: String, wrappedValue: D) {
+    public init(wrappedValue: D, id: String) {
         _store = .init(wrappedValue: .init(id: id, value: wrappedValue))
     }
 }

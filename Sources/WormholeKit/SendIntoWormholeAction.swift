@@ -9,7 +9,7 @@
 import SwiftUI
 
 public struct SendIntoWormholeAction {
-    func callAsFunction<D>(id: String, value: D) where D : Sendable, D : Hashable {
+    public func callAsFunction<D>(id: String, value: D) where D : Sendable, D : Hashable {
         let userInfo: [AnyHashable: Any] = [
             "id": id,
             "value": value
